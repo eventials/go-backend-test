@@ -4,7 +4,7 @@
 
   Desenvolva duas aplicações em Golang: uma produtora e outra consumidora de mensagens.
   
-  Utilize um sistema de filas para atualizar o status de transmissões de streaming em tempo real.
+  É obrigatório utilizar um sistema de filas para atualizar o status de transmissões de streaming em tempo real.
 
   Os estados das transmissões são: "Upcoming", "Live" e "Ended".
 
