@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <style>
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div id="loginPage">
+    <h2>Login</h2>
+    <form id="loginForm">
+        Usuário: <input type="text" id="username"><br>
+        Senha: <input type="password" id="password"><br>
+        <button type="submit">Entrar</button>
+    </form>
+</div>
+
+<div id="createEvent" class="hidden">
+    <h2>Criar Evento</h2>
+    Título: <input type="text" id="title"><br>
+    Data: <input type="date" id="date"><br>
+    Duração: <input type="number" id="duration"><br>
+    <button onclick="createEvent()">Criar</button>
+</div>
+
+<div id="searchEvents">
+    <h2>Buscar Eventos</h2>
+    <button onclick="getEvents()">Buscar</button>
+</div>
+
+<div id="status">
+    <h2>Status da transmissão mais próxima</h2>
+
+</div>
+
+<script>
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        fetch('http://localhost:8080/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password }),
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Falha no login');
+            return response.json();
+        })
+        .then(data => {
+            console.log('Login bem-sucedido:', data);
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('createEvent').classList.remove('hidden');
+        })
+        .catch(error => {
+            console.error('Erro no login:', error);
+            alert('Login falhou');
+        });
+    });
+
+    function createEvent() {
+        const title = document.getElementById('title').value;
+        const date = document.getElementById('date').value;
+        const duration = document.getElementById('duration').value;
+
+        fetch('http://localhost:8080/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ title, date, duration }),
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Falha ao criar evento');
+            return response.json();
+        })
+        .then(data => {
+            console.log('Evento criado com sucesso:', data);
+            alert('Evento criado com sucesso!');
+        })
+        .catch(error => {
+            console.error('Erro ao criar evento:', error);
+            alert('Erro ao criar evento');
+        });
+    }
+
+    function getEvents() {
+        fetch('http://localhost:8080/get', {
+            method: 'GET'
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Falha ao buscar eventos');
+            return response.json();
+        })
+        .then(data => {
+            console.log('Dados pegos com sucesso:', data);
+            alert('Ok!');
+        })
+        .catch(error => {
+            console.error('Erro ao buscar eventos:', error);
+            alert('Erro ao buscar evento');
+        });
+    }
+
+    function status() {
+
+    }
+
+</script>
+
+</body>
+</html>
