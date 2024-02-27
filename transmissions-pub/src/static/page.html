@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <style>
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div id="loginPage">
+    <h2>Login</h2>
+    <form id="loginForm">
+        Usuário: <input type="text" id="username"><br>
+        Senha: <input type="password" id="password"><br>
+        <button type="submit">Entrar</button>
+    </form>
+</div>
+<input type="hidden" id="token">
+
+<div id="createEvent" class="hidden">
+    <h2>Criar Evento</h2>
+    Título: <input type="text" id="title"><br>
+    Data: <input type="date" id="date"><br>
+    Duração (minutos): <input type="number" id="duration"><br>
+    <button onclick="createTransmission()">Criar</button>
+</div>
+
+<div id="searchEvents">
+    <h2>Buscar Eventos</h2>
+    <button onclick="getEvents()">Buscar</button>
+</div>
+
+<div id="status">
+    <h2>Status da transmissão mais próxima</h2>
+    <span id="statusTransmissao"></span>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.min.js"></script>
+
+<script>
+    const TRANSMISSION_STATUS = {
+        0: "Upcoming",
+        1: "Live",
+        2: "Ended"
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        fetch('http://localhost:8080/api/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password }),
+        })
+            .then(response => {
+                if (!response.ok) throw new Error('Falha no login');
+                return response.json();
+            })
+            .then(data => {
+                console.log('Login bem-sucedido:', data);
+                document.getElementById("token").value = data["token"];
+                document.getElementById('loginPage').classList.add('hidden');
+                document.getElementById('createEvent').classList.remove('hidden');
+
+                getNextEvent()
+            })
+            .catch(error => {
+                console.error('Erro no login:', error);
+                alert('Login falhou');
+            });
+    });
+
+    function createTransmission() {
+        const title = document.getElementById('title').value;
+        const date = moment(document.getElementById('date').value, "yyyy-MM-dd").toISOString();
+        const duration = Math.abs(parseInt(document.getElementById('duration').value)) * 1000000000 * 60;
+
+        let queryString = new URLSearchParams({ token: document.getElementById("token").value });
+
+        fetch('http://localhost:8080/api/transmission?' + queryString, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ title, date, duration }),
+        })
+            .then(response => {
+                if (!response.ok) throw new Error('Falha ao criar evento');
+                return response.json();
+            })
+            .then(data => {
+                console.log('Evento criado com sucesso:', data);
+                alert('Evento criado com sucesso!');
+            })
+            .catch(error => {
+                console.error('Erro ao criar evento:', error);
+                alert('Erro ao criar evento');
+            });
+    }
+
+    function getEvents() {
+        let queryString = new URLSearchParams({ token: document.getElementById("token").value });
+
+        fetch('http://localhost:8080/api/transmission?' + queryString, {
+            method: 'GET'
+        })
+            .then(response => {
+                if (!response.ok) throw new Error('Falha ao buscar eventos');
+                return response.json();
+            })
+            .then(data => {
+                console.log('Dados pegos com sucesso:', data);
+                alert('Ok!');
+            })
+            .catch(error => {
+                console.error('Erro ao buscar eventos:', error);
+                alert('Erro ao buscar evento');
+            });
+    }
+
+    function getNextEvent(){
+        let queryString = new URLSearchParams({ token: document.getElementById("token").value });
+
+        fetch('http://localhost:8080/api/transmission/next?' + queryString, {
+            method: 'GET'
+        })
+            .then(response => {
+                if (!response.ok) throw new Error('Falha a próxima transmissão');
+                return response.json();
+            })
+            .then(data => {
+                console.log('Próxima transmissão:', data);
+                document.getElementById("statusTransmissao").textContent = TRANSMISSION_STATUS[data["Status"]]
+                alert('Ok!');
+            })
+            .catch(error => {
+                console.error('Erro ao buscar a próxima transmissão:', error);
+                alert('Erro ao buscar a próxima transmissão');
+            });
+    }
+
+    function status() {
+
+    }
+</script>
+</body>
+</html>
